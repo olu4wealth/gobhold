@@ -59,7 +59,7 @@ const NODES := [
 	{"id": "laser_falloff", "name": "PIERCING FALLoff", "category": "offense", "position": Vector2(620, 560), "desc": "Reduce line-penetration damage falloff.", "max": -1, "base_cost": 230, "currency": "shards", "needs": ["laser"], "effect": {"kind": "falloff", "amount": 0.08}},
 
 	{"id": "ordnance", "name": "ORDNANCE", "category": "ability", "position": Vector2(40, -410), "desc": "Commander weapons and cursor-directed support.", "max": 1, "costs": [{"shards": 20}], "needs": ["core"], "effect": {"kind": "none"}},
-	{"id": "missile_cd", "name": "FAST FUSE", "category": "ability", "position": Vector2(230, -500), "desc": "Reduce manual missile cooldown.", "max": -1, "base_cost": 75, "currency": "shards", "needs": ["ordnance"], "effect": {"kind": "missile_cd", "amount": 0.08}},
+	{"id": "missile_cd", "name": "FAST FUSE", "category": "ability", "position": Vector2(230, -500), "desc": "Reduce manual missile cooldown.", "max": -1, "base_cost": 75, "currency": "shards", "needs": ["ordnance"], "effect": {"kind": "missile_cd", "amount": 0.04}},
 	{"id": "missile_dmg", "name": "BIG WARHEAD", "category": "ability", "position": Vector2(420, -500), "desc": "Increase missile damage.", "max": -1, "base_cost": 110, "currency": "shards", "needs": ["ordnance"], "effect": {"kind": "missile_damage", "amount": 0.08}},
 	{"id": "missile_blast", "name": "WIDE BLAST", "category": "ability", "position": Vector2(610, -500), "desc": "Increase missile impact radius.", "max": -1, "base_cost": 100, "currency": "shards", "needs": ["ordnance"], "effect": {"kind": "missile_blast", "amount": 6.0}},
 	{"id": "auto", "name": "AUTOMATIC MISSILE", "category": "ability", "position": Vector2(790, -430), "desc": "A milestone that fires emergency rockets automatically at the cursor.", "max": 1, "costs": [{"shards": 150}], "needs": ["missile_cd"], "requires_level": {"missile_cd": 8}, "effect": {"kind": "auto"}},
@@ -230,7 +230,7 @@ static func effects(tree: Dictionary) -> Dictionary:
 		"slow": 0.0,
 		"beam_mult": 1.0,
 		"beam_falloff": 0.35,
-		"missile_cooldown": 2.0,
+		"missile_cooldown": 0.5,
 		"missile_damage_mult": 1.0,
 		"missile_blast": 45.0,
 		"auto": false,
@@ -270,7 +270,7 @@ static func effects(tree: Dictionary) -> Dictionary:
 			"slow": out["slow"] = minf(0.9, float(out["slow"]) + amount)
 			"beam": out["beam_mult"] += amount
 			"falloff": out["beam_falloff"] = maxf(0.02, float(out["beam_falloff"]) - amount)
-			"missile_cd": out["missile_cooldown"] = maxf(0.35, float(out["missile_cooldown"]) - amount)
+			"missile_cd": out["missile_cooldown"] = maxf(0.15, float(out["missile_cooldown"]) - amount)
 			"missile_damage": out["missile_damage_mult"] += amount
 			"missile_blast": out["missile_blast"] += amount
 			"auto": out["auto"] = true

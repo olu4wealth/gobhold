@@ -118,7 +118,7 @@ func _start_run(p_def: Dictionary, p_tree: Dictionary, p_layout: Array, tutorial
 		t.priority = String(spec.get("priority", "near"))
 		towers_root.add_child(t)
 	missile.horde = horde
-	missile.cooldown = 2.0 if is_tutorial else float(effects["missile_cooldown"])
+	missile.cooldown = 0.5 if is_tutorial else float(effects["missile_cooldown"])
 	missile.damage = 18.0 if is_tutorial else 60.0 * float(effects["missile_damage_mult"])
 	missile.blast = 24.0 if is_tutorial else float(effects["missile_blast"])
 	missile.auto_unlocked = bool(effects["auto"])
@@ -271,6 +271,10 @@ func _persist() -> void:
 	meta["current_level"] = String(def.get("id", "T"))
 	if is_tutorial:
 		meta["tut"] = true
+		var tut_tree: Dictionary = meta.get("tree", {})
+		if Progression.level(tut_tree, "gun") <= 0:
+			tut_tree["gun"] = 1
+			meta["tree"] = tut_tree
 	var prog: Dictionary = data["progress"]
 	var unlocked: Array = prog.get("unlocked", [])
 	var lid := String(def.get("id", ""))

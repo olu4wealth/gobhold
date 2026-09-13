@@ -7,7 +7,7 @@ signal fired
 
 var horde = null
 var active := false
-var cooldown := 2.0
+var cooldown := 0.5
 var damage := 60.0
 var blast := 45.0
 var auto_unlocked := false
@@ -17,7 +17,6 @@ const DROP := 0.25
 
 var cd_left := 0.0
 var cross := Vector2(640, 360)
-var last_hit := Vector2(-9999.0, -9999.0)
 var _touch_id := -1
 var _mheld := false
 var _touch_device := false
@@ -109,7 +108,6 @@ func _physics_process(delta: float) -> void:
 func _detonate(point: Vector2) -> void:
 	if horde != null and is_instance_valid(horde):
 		horde.damage_at(point, blast, damage)
-	last_hit = point
 	_flashes.append({"pos": point - global_position, "t": 0.35})
 	Input.vibrate_handheld(40)
 
@@ -121,19 +119,15 @@ func _draw() -> void:
 	var c := cross - global_position
 	var is_ready := cd_left <= 0.0
 	var col := Color(1, 0.85, 0.3) if is_ready else Color(0.5, 0.5, 0.55, 0.7)
-	draw_arc(c, 24.0, 0.0, TAU, 28, col, 3.0)
-	draw_line(c + Vector2(-34, 0), c + Vector2(-14, 0), col, 3.0)
-	draw_line(c + Vector2(14, 0), c + Vector2(34, 0), col, 3.0)
-	draw_line(c + Vector2(0, -34), c + Vector2(0, -14), col, 3.0)
-	draw_line(c + Vector2(0, 14), c + Vector2(0, 34), col, 3.0)
+	draw_arc(c, 12.0, 0.0, TAU, 24, col, 2.0)
+	draw_line(c + Vector2(-17, 0), c + Vector2(-7, 0), col, 2.0)
+	draw_line(c + Vector2(7, 0), c + Vector2(17, 0), col, 2.0)
+	draw_line(c + Vector2(0, -17), c + Vector2(0, -7), col, 2.0)
+	draw_line(c + Vector2(0, 7), c + Vector2(0, 17), col, 2.0)
 	if not is_ready:
-		draw_arc(c, 32.0, -PI * 0.5, -PI * 0.5 + TAU * (1.0 - cd_left / cooldown), 28, col, 4.0)
+		draw_arc(c, 16.0, -PI * 0.5, -PI * 0.5 + TAU * (1.0 - cd_left / cooldown), 24, col, 2.0)
 	if auto_on:
-		draw_arc(c, 42.0, 0.0, TAU, 28, Color(0.4, 1.0, 0.5, 0.9), 3.0)
-	# Last impact marker.
-	if last_hit.x > -9000.0:
-		var h := last_hit - global_position
-		draw_arc(h, 10.0, 0.0, TAU, 16, Color(1, 0.5, 0.2, 0.8), 2.0)
+		draw_arc(c, 21.0, 0.0, TAU, 24, Color(0.4, 1.0, 0.5, 0.9), 2.0)
 	# Pending drop shadows.
 	for p in _pending:
 		var pp: Vector2 = (p["point"] as Vector2) - global_position

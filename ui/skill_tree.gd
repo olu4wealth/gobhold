@@ -22,6 +22,7 @@ var _hold_opened := false
 
 var _node_buttons := {}
 var _topbar: HBoxContainer
+var _bottom_chrome: Array = []
 var _resource_labels := {}
 var _backdrop: ColorRect
 var _modal: PanelContainer
@@ -161,6 +162,7 @@ func _build_bottom_ui() -> void:
 	legend.position = Vector2(18, 610)
 	legend.size = Vector2(190, 88)
 	legend.z_index = 5
+	_bottom_chrome.append(legend)
 	add_child(legend)
 	var legend_text := Label.new()
 	legend_text.text = "DRAG  Pan Camera\nWHEEL  Zoom\nHOLD  Preview | TAP  Buy"
@@ -170,6 +172,7 @@ func _build_bottom_ui() -> void:
 	play.position = Vector2(1112, 642)
 	play.z_index = 5
 	play.pressed.connect(_open_levels)
+	_bottom_chrome.append(play)
 	add_child(play)
 	_status = Label.new()
 	_status.position = Vector2(230, 672)
@@ -177,6 +180,7 @@ func _build_bottom_ui() -> void:
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status.add_theme_font_size_override("font_size", 14)
 	_status.z_index = 5
+	_bottom_chrome.append(_status)
 	add_child(_status)
 	_cheapest = Label.new()
 	_cheapest.position = Vector2(230, 635)
@@ -184,6 +188,7 @@ func _build_bottom_ui() -> void:
 	_cheapest.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_cheapest.add_theme_font_size_override("font_size", 12)
 	_cheapest.z_index = 5
+	_bottom_chrome.append(_cheapest)
 	add_child(_cheapest)
 
 
@@ -214,6 +219,8 @@ func _build_backdrop() -> void:
 	var shader := load("res://ui/modal_blur.gdshader") as Shader
 	var blur_material := ShaderMaterial.new()
 	blur_material.shader = shader
+	blur_material.set_shader_parameter("darkness", 0.88)
+	blur_material.set_shader_parameter("blur_radius", 6.0)
 	_backdrop.material = blur_material
 	_backdrop.visible = false
 	add_child(_backdrop)
@@ -262,9 +269,22 @@ func _show_modal(title: String, height: float) -> void:
 	_tooltip.visible = false
 
 
+func _set_tree_chrome_visible(v: bool) -> void:
+	if _topbar != null:
+		_topbar.visible = v
+	for c in _bottom_chrome:
+		if is_instance_valid(c):
+			(c as CanvasItem).visible = v
+	for b in _node_buttons.values():
+		if is_instance_valid(b):
+			(b as CanvasItem).visible = v
+	_tooltip.visible = false
+
+
 func _open_slots() -> void:
 	_mode = "slots"
 	_show_modal("CHOOSE AN EXPEDITION", 430.0)
+	_set_tree_chrome_visible(false)
 	var note := Label.new()
 	note.text = "Select a save to continue. Empty slots create a new progression state."
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -287,38 +307,56 @@ func _slot_card(i: int) -> PanelContainer:
 	var occupied := bool(s.get("exists", false))
 	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(265, 245)
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
+	card.gui_input.connect(_on_slot_card_input.bind(i))
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 12)
 	margin.add_theme_constant_override("margin_top", 10)
 	margin.add_theme_constant_override("margin_right", 12)
 	margin.add_theme_constant_override("margin_bottom", 10)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(margin)
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 5)
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(vb)
-	var title := Label.new()
-	title.text = "Slot #%d" % [i + 1]
-	title.add_theme_font_size_override("font_size", 20)
-	vb.add_child(title)
-	var details := Label.new()
-	details.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	if occupied:
-			details.text = "Current Level   %s\nShards          %d\nCrystals         %d\nDiamonds         %d\nEarned           %d\nLast Played      %s%s" % [
-			String(s.get("level", "T")), int(s.get("shards", 0)), int(s.get("crystals", 0)), int(s.get("diamonds", 0)),
-			int(s.get("lifetime", 0)), String(s.get("last", "—")), "\n\nACTIVE" if Save.active_slot == i else ""]
+	if not occupied:
+		var empty := Label.new()
+		empty.text = "EMPTY SLOT"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		empty.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		empty.add_theme_font_size_override("font_size", 20)
+		empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(empty)
 	else:
-		details.text = "\nEmpty\n\nCreate a new expedition."
-	vb.add_child(details)
-	var select := _make_button("CONTINUE" if occupied else "CREATE", Vector2(0, 44), 16)
-	select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	select.pressed.connect(_select_slot.bind(i))
-	vb.add_child(select)
-	if occupied:
+		var title := Label.new()
+		title.text = "Slot #%d" % [i + 1]
+		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title.add_theme_font_size_override("font_size", 20)
+		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(title)
+		var details := Label.new()
+		details.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		details.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		details.text = "Current Level   %s\nEarned             %d\nLast Played      %s%s" % [
+			String(s.get("level", "T")), int(s.get("lifetime", 0)),
+			String(s.get("last", "—")), "\n\nACTIVE" if Save.active_slot == i else ""]
+		vb.add_child(details)
 		var delete := _make_button("DELETE", Vector2(0, 30), 13)
 		delete.pressed.connect(_confirm_delete.bind(i))
 		vb.add_child(delete)
 	return card
+
+
+func _on_slot_card_input(event: InputEvent, i: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_select_slot(i)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventScreenTouch and event.pressed:
+		_select_slot(i)
+		get_viewport().set_input_as_handled()
 
 
 func _select_slot(i: int) -> void:
@@ -363,6 +401,7 @@ func _open_tree() -> void:
 	_mode = "tree"
 	_modal.visible = false
 	_backdrop.visible = false
+	_set_tree_chrome_visible(true)
 	_refresh_data()
 	if Save.active_slot < 0:
 		_open_slots()

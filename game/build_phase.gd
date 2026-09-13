@@ -53,10 +53,12 @@ func _ready() -> void:
 	if Save.active_slot >= 0:
 		var data := Save.load_slot(Save.active_slot)
 		tree = (data["meta"] as Dictionary).get("tree", {})
-	var effects = Progression.effects(tree)
-	copies = effects["copies"].duplicate()
+	effects = Progression.effects(tree)
+	copies = (effects["copies"] as Dictionary).duplicate()
 	tower_cap = 3 + int(effects.get("tower_count", 0))
 	build_tutorial = lid == "1.1"
+	if lid == "1.1" and int(copies.get("gun", 0)) <= 0:
+		copies["gun"] = 1
 	if Save.active_level == "" and copies.get("gun", 0) == 0:
 		copies = {"scrapper": 1, "gun": 2, "cannon": 1, "mortar": 1, "flame": 0, "grenade": 0, "tesla": 0, "cryo": 0, "laser": 0} # dev slice purse
 	var pts := PackedVector2Array(def["path"])
@@ -93,6 +95,7 @@ func _ready() -> void:
 func _build_tray() -> void:
 	for c in tray_box.get_children():
 		c.queue_free()
+	var shown := 0
 	for t in Defs.TOWERS:
 		var n: int = int(copies.get(t, 0))
 		if n <= 0:
@@ -106,6 +109,9 @@ func _build_tray() -> void:
 		b.toggled.connect(_on_tray.bind(t))
 		b.set_meta("type", t)
 		tray_box.add_child(b)
+		shown += 1
+	if shown == 0:
+		_say("No towers owned — open LEVELS, buy GUNNER (Free).")
 	start_button.disabled = build_tutorial and towers_root.get_child_count() == 0
 
 

@@ -19,7 +19,7 @@ func _initialize() -> void:
 	assert(not Progression.cost_for("auto", 0).has("crystals"))
 	var effects := Progression.effects(tree)
 	assert(int(effects["copies"]["gun"]) == 13)
-	assert(is_equal_approx(float(effects["missile_cooldown"]), 1.36))
+	assert(is_equal_approx(float(effects["missile_cooldown"]), 0.18))
 	assert(Progression.state(tree, resources, "gun") == "maxed")
 	assert(Progression.max_label(Progression.node("gun_dmg")) == "∞")
 	print("progression test passed")
