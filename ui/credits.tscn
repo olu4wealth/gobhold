@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/back.gd" id="1"]
+
+[node name="Credits" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="BG" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.09, 0.1, 0.12, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="Center"]
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Center/VBox"]
+theme_override_font_sizes/font_size = 44
+text = "CREDITS"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="Center/VBox"]
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 1)
+text = "Gobhold: a goblin-horde roguelite tower defense.
+Built with Godot 4.
+Fields of fire by you, Commander."
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(280, 56)
+theme_override_font_sizes/font_size = 22
+text = "BACK"
+script = ExtResource("1")
