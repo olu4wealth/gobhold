@@ -14,7 +14,6 @@ var def := {}
 var tree := {}
 var effects := {}
 var copies := {}
-var gold := 400
 var tower_cap := 3
 var build_tutorial := false
 var tray := "" # selected tower type for placement, "" = none
@@ -33,7 +32,6 @@ var _hover := Vector2(-9999.0, -9999.0)
 @onready var road: Line2D = $Road
 @onready var towers_root: Node2D = $Towers
 @onready var tray_box: HBoxContainer = $HUD/TrayBox
-@onready var gold_label: Label = $HUD/GoldLabel
 @onready var count_label: Label = $HUD/CountLabel
 @onready var start_button: Button = $HUD/StartButton
 @onready var back_button: Button = $HUD/BackButton
@@ -58,7 +56,6 @@ func _ready() -> void:
 	var effects = Progression.effects(tree)
 	copies = effects["copies"].duplicate()
 	tower_cap = 3 + int(effects.get("tower_count", 0))
-	gold = Save.pending_gold if Save.pending_gold > 0 else 400
 	build_tutorial = lid == "1.1"
 	if Save.active_level == "" and copies.get("gun", 0) == 0:
 		copies = {"scrapper": 1, "gun": 2, "cannon": 1, "mortar": 1, "flame": 0, "grenade": 0, "tesla": 0, "cryo": 0, "laser": 0} # dev slice purse
@@ -101,9 +98,9 @@ func _build_tray() -> void:
 		if n <= 0:
 			continue
 		var b := Button.new()
-		b.text = "%s $%d x%d" % [String(Defs.TOWERS[t]["name"]), int(Defs.TOWERS[t].get("cost", 0)), n]
-		b.custom_minimum_size = Vector2(170, 64)
-		b.add_theme_font_size_override("font_size", 20)
+		b.text = "%s x%d" % [String(Defs.TOWERS[t]["name"]), n]
+		b.custom_minimum_size = Vector2(150, 54)
+		b.add_theme_font_size_override("font_size", 16)
 		b.toggle_mode = true
 		b.focus_mode = Control.FOCUS_NONE
 		b.toggled.connect(_on_tray.bind(t))
@@ -217,9 +214,10 @@ func _release(vpos: Vector2) -> void:
 	if t == null or not is_instance_valid(t):
 		return
 	if _press_moved and mode == "move":
-		if not _valid_spot(t.position, t):
+		var reason := _placement_error(t.position, t)
+		if reason != "":
 			t.position = _press_orig
-			_say("Blocked — keep clear of road and towers.")
+			_say(reason)
 		t.show_scope = false
 		queue_redraw()
 		return
@@ -234,36 +232,36 @@ func _dist_to_path(p: Vector2) -> float:
 
 
 func _valid_spot(p: Vector2, ignore) -> bool:
+	return _placement_error(p, ignore) == ""
+
+
+func _placement_error(p: Vector2, ignore) -> String:
 	if ignore == null and towers_root.get_child_count() >= tower_cap:
-		return false
+		return "Deployment cap reached. Unlock TOWER COUNT for another slot."
 	if _dist_to_path(p) < PATH_HALF + TOWER_R + 4.0:
-		return false
+		return "Blocked: place the turret on grass, not the road."
 	for t in towers_root.get_children():
 		if t == ignore:
 			continue
 		if t.global_position.distance_to(p) < TOWER_R * 2.0 + 4.0:
-			return false
+			return "Blocked: leave space between turrets."
 	var size := get_viewport_rect().size
-	var w := (get_canvas_transform().affine_inverse() * Vector2(size.x, 0.0)).x
-	var h := (get_canvas_transform().affine_inverse() * Vector2(0.0, size.y)).y
-	if p.x < 24.0 or p.y < 24.0 or p.x > w - 24.0 or p.y > h - 24.0:
-		return false
-	return true
+	var top_left := _to_world(Vector2(24.0, 24.0))
+	var bottom_right := _to_world(size - Vector2(24.0, 24.0))
+	if p.x < top_left.x or p.y < top_left.y or p.x > bottom_right.x or p.y > bottom_right.y:
+		return "Blocked: keep the turret inside the map."
+	return ""
 
 
 func _try_place(world: Vector2) -> void:
 	if int(copies.get(tray, 0)) <= 0:
+		_say("No %s unlocked. Buy it in the skill tree." % String(Defs.TOWERS.get(tray, {}).get("name", tray)))
 		return
-	var cost := int(Defs.TOWERS[tray].get("cost", 0))
-	if gold < cost:
-		_say("Need %d gold for %s." % [cost, String(Defs.TOWERS[tray]["name"])])
-		return
-	if not _valid_spot(world, null):
-		_say("Blocked, or deployment cap reached.")
+	var reason := _placement_error(world, null)
+	if reason != "":
+		_say(reason)
 		return
 	var t = _spawn_tower({"type": tray, "x": world.x, "y": world.y, "aim": (_nearest_path(world) - world).angle(), "arc": TAU, "priority": "near"})
-	t.set_meta("cost", cost)
-	gold -= cost
 	Input.vibrate_handheld(25)
 	_build_tray()
 	if int(copies.get(tray, 0)) <= 0:
@@ -348,7 +346,6 @@ func _on_delete() -> void:
 		_close_info()
 		return
 	copies[selected.type] = int(copies.get(selected.type, 0)) + 1
-	gold += int(selected.get_meta("cost", Defs.TOWERS[selected.type].get("cost", 0)))
 	_say("%s recovered." % String(Defs.TOWERS[selected.type]["name"]))
 	selected.queue_free()
 	selected = null
@@ -373,7 +370,7 @@ func _on_start() -> void:
 		specs.append({"type": t.type, "x": t.position.x, "y": t.position.y,
 			"aim": t.aim_angle, "arc": t.arc, "priority": t.priority})
 	Save.pending_layout = specs
-	Save.pending_gold = gold
+	Save.pending_gold = 400
 	if towers_root.get_child_count() == 0:
 		_say("Place at least one tower before battle.")
 		return
@@ -399,7 +396,6 @@ func _say(t: String) -> void:
 
 
 func _update_hud() -> void:
-	gold_label.text = "GOLD %d" % gold
 	count_label.text = "TOWERS %d/%d" % [towers_root.get_child_count(), tower_cap]
 
 

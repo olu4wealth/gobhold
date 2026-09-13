@@ -3,9 +3,10 @@ extends Control
 
 const Defs = preload("res://game/defs.gd")
 const Progression = preload("res://game/progression.gd")
-const NODE_SIZE := Vector2(116, 72)
+const NODE_SIZE := Vector2(84, 84)
 const ZOOM_MIN := 0.62
 const ZOOM_MAX := 1.35
+const HOLD_TIME := 0.45
 
 var _mode := "slots"
 var _tree := {}
@@ -15,6 +16,9 @@ var _pan := Vector2.ZERO
 var _zoom := 0.62
 var _panning := false
 var _last_pointer := Vector2.ZERO
+var _pressed_node := ""
+var _pressed_at := 0.0
+var _hold_opened := false
 
 var _node_buttons := {}
 var _topbar: HBoxContainer
@@ -26,8 +30,6 @@ var _modal_body: VBoxContainer
 var _tooltip: PanelContainer
 var _tooltip_title: Label
 var _tooltip_body: Label
-var _tooltip_buy: Button
-var _tooltip_levels: Button
 var _status: Label
 var _cheapest: Label
 var _confirm: ConfirmationDialog
@@ -70,8 +72,9 @@ func _build_tree() -> void:
 		b.custom_minimum_size = NODE_SIZE
 		b.size = NODE_SIZE
 		b.focus_mode = Control.FOCUS_NONE
-		b.add_theme_font_size_override("font_size", 12)
-		b.pressed.connect(_open_node.bind(id))
+		b.add_theme_font_size_override("font_size", 10)
+		b.button_down.connect(_on_node_down.bind(id))
+		b.button_up.connect(_on_node_up.bind(id))
 		add_child(b)
 		_node_buttons[id] = b
 	_layout_nodes()
@@ -98,16 +101,7 @@ func _refresh_nodes() -> void:
 			continue
 		var state := Progression.state(_tree, _resources, id)
 		var color: Color = Progression.color_for(String(spec["category"]))
-		var state_label: String = {
-			"maxed": "MAXED",
-			"partial": "UPGRADABLE",
-			"purchasable": "PURCHASABLE",
-			"available": "AVAILABLE",
-			"blocked": "BLOCKED",
-			"prerequisite": "LOCKED",
-		}.get(state, state.to_upper())
-		b.text = "[%s]\n%s\n%d/%s  %s" % [String(spec["category"]).to_upper(), String(spec["name"]),
-			Progression.level(_tree, id), Progression.max_label(spec), state_label]
+		b.text = "%s\n%d/%s" % [String(spec["name"]), Progression.level(_tree, id), Progression.max_label(spec)]
 		b.add_theme_stylebox_override("normal", _node_style(color, state))
 		b.add_theme_stylebox_override("hover", _node_style(color, state, true))
 		b.add_theme_stylebox_override("pressed", _node_style(color, state, true))
@@ -126,7 +120,7 @@ func _refresh_nodes() -> void:
 func _node_style(color: Color, state: String, hovered := false) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.015, 0.025, 0.05, 0.94)
-	sb.set_corner_radius_all(5)
+	sb.set_corner_radius_all(int(NODE_SIZE.x * 0.5))
 	sb.set_border_width_all(3 if hovered else 2)
 	var alpha := 0.95 if state == "maxed" or state == "purchasable" or state == "partial" else 0.42
 	sb.border_color = Color(color.r, color.g, color.b, alpha)
@@ -142,12 +136,12 @@ func _build_topbar() -> void:
 	add_child(_topbar)
 	var title := Label.new()
 	title.text = "WAR ROOM"
-	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_font_size_override("font_size", 26)
 	_topbar.add_child(title)
 	for id in ["shards", "crystals", "diamonds"]:
 		var label := Label.new()
 		label.text = "%s  0" % String(id).to_upper()
-		label.add_theme_font_size_override("font_size", 18)
+		label.add_theme_font_size_override("font_size", 14)
 		label.add_theme_color_override("font_color", Progression.color_for("weapon") if id == "shards" else (Progression.color_for("ability") if id == "crystals" else Progression.color_for("enemy")))
 		_resource_labels[id] = label
 		_topbar.add_child(label)
@@ -169,10 +163,10 @@ func _build_bottom_ui() -> void:
 	legend.z_index = 5
 	add_child(legend)
 	var legend_text := Label.new()
-	legend_text.text = "DRAG  Pan Camera\nWHEEL  Zoom\nCLICK  Buy / Inspect"
-	legend_text.add_theme_font_size_override("font_size", 14)
+	legend_text.text = "DRAG  Pan Camera\nWHEEL  Zoom\nHOLD  Preview | TAP  Buy"
+	legend_text.add_theme_font_size_override("font_size", 12)
 	legend.add_child(legend_text)
-	var play := _make_button("PLAY", Vector2(150, 62), 26)
+	var play := _make_button("PLAY", Vector2(150, 62), 22)
 	play.position = Vector2(1112, 642)
 	play.z_index = 5
 	play.pressed.connect(_open_levels)
@@ -181,14 +175,14 @@ func _build_bottom_ui() -> void:
 	_status.position = Vector2(230, 672)
 	_status.size = Vector2(650, 32)
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status.add_theme_font_size_override("font_size", 16)
+	_status.add_theme_font_size_override("font_size", 14)
 	_status.z_index = 5
 	add_child(_status)
 	_cheapest = Label.new()
 	_cheapest.position = Vector2(230, 635)
 	_cheapest.size = Vector2(650, 32)
 	_cheapest.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_cheapest.add_theme_font_size_override("font_size", 14)
+	_cheapest.add_theme_font_size_override("font_size", 12)
 	_cheapest.z_index = 5
 	add_child(_cheapest)
 
@@ -196,7 +190,7 @@ func _build_bottom_ui() -> void:
 func _build_tooltip() -> void:
 	_tooltip = PanelContainer.new()
 	_tooltip.position = Vector2(430, 106)
-	_tooltip.size = Vector2(390, 190)
+	_tooltip.size = Vector2(340, 145)
 	_tooltip.z_index = 6
 	_tooltip.visible = false
 	add_child(_tooltip)
@@ -204,23 +198,12 @@ func _build_tooltip() -> void:
 	vb.add_theme_constant_override("separation", 6)
 	_tooltip.add_child(vb)
 	_tooltip_title = Label.new()
-	_tooltip_title.add_theme_font_size_override("font_size", 22)
+	_tooltip_title.add_theme_font_size_override("font_size", 18)
 	vb.add_child(_tooltip_title)
 	_tooltip_body = Label.new()
 	_tooltip_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_tooltip_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vb.add_child(_tooltip_body)
-	var buttons := HBoxContainer.new()
-	vb.add_child(buttons)
-	_tooltip_buy = _make_button("BUY UPGRADE", Vector2(170, 44), 16)
-	_tooltip_buy.pressed.connect(_buy_selected)
-	buttons.add_child(_tooltip_buy)
-	_tooltip_levels = _make_button("LEVELS", Vector2(110, 44), 16)
-	_tooltip_levels.pressed.connect(_open_levels)
-	buttons.add_child(_tooltip_levels)
-	var close := _make_button("X", Vector2(44, 44), 16)
-	close.pressed.connect(func() -> void: _tooltip.visible = false)
-	buttons.add_child(close)
 
 
 func _build_backdrop() -> void:
@@ -245,6 +228,12 @@ func _build_modal() -> void:
 	_modal.offset_bottom = 285.0
 	_modal.z_index = 11
 	_modal.visible = false
+	var modal_style := StyleBoxFlat.new()
+	modal_style.bg_color = Color("#111827")
+	modal_style.border_color = Color("#4b5563")
+	modal_style.set_border_width_all(2)
+	modal_style.set_corner_radius_all(10)
+	_modal.add_theme_stylebox_override("panel", modal_style)
 	add_child(_modal)
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
@@ -253,11 +242,11 @@ func _build_modal() -> void:
 	margin.add_theme_constant_override("margin_bottom", 20)
 	_modal.add_child(margin)
 	_modal_body = VBoxContainer.new()
-	_modal_body.add_theme_constant_override("separation", 14)
+	_modal_body.add_theme_constant_override("separation", 10)
 	margin.add_child(_modal_body)
 	_modal_title = Label.new()
 	_modal_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_modal_title.add_theme_font_size_override("font_size", 34)
+	_modal_title.add_theme_font_size_override("font_size", 28)
 	_modal_body.add_child(_modal_title)
 
 
@@ -279,7 +268,7 @@ func _open_slots() -> void:
 	var note := Label.new()
 	note.text = "Select a save to continue. Empty slots create a new progression state."
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	note.add_theme_font_size_override("font_size", 16)
+	note.add_theme_font_size_override("font_size", 14)
 	_modal_body.add_child(note)
 	var cards := HBoxContainer.new()
 	cards.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -309,7 +298,7 @@ func _slot_card(i: int) -> PanelContainer:
 	margin.add_child(vb)
 	var title := Label.new()
 	title.text = "Slot #%d" % [i + 1]
-	title.add_theme_font_size_override("font_size", 23)
+	title.add_theme_font_size_override("font_size", 20)
 	vb.add_child(title)
 	var details := Label.new()
 	details.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -321,7 +310,7 @@ func _slot_card(i: int) -> PanelContainer:
 	else:
 		details.text = "\nEmpty\n\nCreate a new expedition."
 	vb.add_child(details)
-	var select := _make_button("CONTINUE" if occupied else "CREATE", Vector2(0, 48), 18)
+	var select := _make_button("CONTINUE" if occupied else "CREATE", Vector2(0, 44), 16)
 	select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	select.pressed.connect(_select_slot.bind(i))
 	vb.add_child(select)
@@ -395,25 +384,56 @@ func _show_node(id: String) -> void:
 	if spec.is_empty():
 		return
 	var current := Progression.level(_tree, id)
-	var max_level := int(spec.get("max", 1))
 	var state := Progression.state(_tree, _resources, id)
 	var cost := Progression.cost_for(id, current)
 	_tooltip_title.text = "%s   %d/%s" % [String(spec["name"]), current, Progression.max_label(spec)]
 	_tooltip_body.text = "%s\n\nEffect: %s\nCost: %s\nStatus: %s" % [String(spec["desc"]), Progression.effect_text(spec), Progression.cost_text(cost), state.replace("_", " ").to_upper()]
 	if not Progression.requirements_met(_tree, spec):
 		_tooltip_body.text += "\nRequires: " + ", ".join(spec.get("needs", []))
-	_tooltip_buy.disabled = not Progression.can_purchase(_tree, _resources, id)
-	_tooltip_buy.text = "BUY UPGRADE" if Progression.is_infinite(spec) or current < max_level else "MAXED"
-	_tooltip_levels.disabled = false
 	_tooltip.visible = _mode == "tree"
+	var button: Button = _node_buttons.get(id)
+	if button != null:
+		_tooltip.position = Vector2(clampf(button.position.x + NODE_SIZE.x + 12.0, 8.0, size.x - _tooltip.size.x - 8.0), clampf(button.position.y, 82.0, size.y - _tooltip.size.y - 20.0))
 
 
-func _buy_selected() -> void:
+func _on_node_down(id: String) -> void:
+	_pressed_node = id
+	_pressed_at = Time.get_ticks_msec() / 1000.0
+	_hold_opened = false
+
+
+func _on_node_up(id: String) -> void:
+	if id != _pressed_node:
+		return
+	var was_hold := _hold_opened
+	_pressed_node = ""
+	_hold_opened = false
+	if was_hold:
+		_selected_node = ""
+		_tooltip.visible = false
+		return
+	_selected_node = id
+	if not _buy_selected():
+		_status.text = "Hold to inspect requirements."
+	_selected_node = ""
+	_tooltip.visible = false
+
+
+func _process(_delta: float) -> void:
+	if _pressed_node == "" or _hold_opened:
+		return
+	if Time.get_ticks_msec() / 1000.0 - _pressed_at < HOLD_TIME:
+		return
+	_hold_opened = true
+	_selected_node = _pressed_node
+	_show_node(_pressed_node)
+
+
+func _buy_selected() -> bool:
 	if _selected_node == "" or Save.active_slot < 0:
-		return
+		return false
 	if not Progression.can_purchase(_tree, _resources, _selected_node):
-		_status.text = "Prerequisite or resources missing."
-		return
+		return false
 	var data := Save.load_slot(Save.active_slot)
 	var meta: Dictionary = data["meta"]
 	var resources: Dictionary = meta.get("resources", {})
@@ -429,8 +449,10 @@ func _buy_selected() -> void:
 	Save.write_slot(Save.active_slot, data)
 	_resources = resources
 	_tree = tree
-	_status.text = "%s unlocked." % String(Progression.node(_selected_node)["name"])
+	_status.text = "%s upgraded." % String(Progression.node(_selected_node)["name"])
+	_selected_node = ""
 	_refresh_data()
+	return true
 
 
 func _open_levels() -> void:
@@ -450,6 +472,8 @@ func _open_levels() -> void:
 	var data := Save.load_slot(Save.active_slot)
 	var unlocked: Array = (data["progress"] as Dictionary).get("unlocked", [])
 	for stage in Defs.LEVELS:
+		if bool(stage.get("tutorial", false)):
+			continue
 		rows.add_child(_stage_card(stage, unlocked))
 	var back := _make_button("BACK TO TREE", Vector2(220, 44), 18)
 	back.pressed.connect(_open_tree)
@@ -458,7 +482,7 @@ func _open_levels() -> void:
 
 func _stage_card(stage: Dictionary, unlocked: Array) -> PanelContainer:
 	var id := String(stage["id"])
-	var open := id == "T" or unlocked.has(id)
+	var open := unlocked.has(id)
 	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(820, 92)
 	var hb := HBoxContainer.new()
@@ -470,18 +494,18 @@ func _stage_card(stage: Dictionary, unlocked: Array) -> PanelContainer:
 	preview_label.text = String(stage.get("preview", id)) + ("\nLOCKED" if not open else "")
 	preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	preview_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	preview_label.add_theme_font_size_override("font_size", 16)
+	preview_label.add_theme_font_size_override("font_size", 14)
 	preview.add_child(preview_label)
 	hb.add_child(preview)
 	var body := VBoxContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var title := Label.new()
 	title.text = "%s   %s" % [id, String(stage["name"])]
-	title.add_theme_font_size_override("font_size", 21)
+	title.add_theme_font_size_override("font_size", 18)
 	body.add_child(title)
 	var stats := Label.new()
 	stats.text = "%d orcs   |   %s   |   1 Shard / 10 kills   |   Perfect clear: Crystal" % [int(stage.get("orcs", 0)), String(stage.get("diff", ""))]
-	stats.add_theme_font_size_override("font_size", 15)
+	stats.add_theme_font_size_override("font_size", 13)
 	body.add_child(stats)
 	hb.add_child(body)
 	var info := _make_button("i", Vector2(42, 42), 18)

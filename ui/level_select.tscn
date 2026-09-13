@@ -23,7 +23,7 @@ anchor_bottom = 1.0
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/VBox"]
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 32
 text = "CHOOSE GROUND"
 horizontal_alignment = 1
 
@@ -32,5 +32,5 @@ theme_override_constants/separation = 8
 
 [node name="BackButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(280, 56)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "SLOTS"

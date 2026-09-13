@@ -23,28 +23,28 @@ anchor_bottom = 1.0
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/VBox"]
-theme_override_font_sizes/font_size = 72
+theme_override_font_sizes/font_size = 48
 text = "GOBHOLD"
 horizontal_alignment = 1
 
 [node name="PlayButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(280, 64)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 20
 text = "PLAY"
 
 [node name="SettingsButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(280, 56)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "SETTINGS"
 
 [node name="CreditsButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(280, 56)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "CREDITS"
 
 [node name="QuitButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(280, 56)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "QUIT"
 
 [node name="VersionLabel" type="Label" parent="Center/VBox"]

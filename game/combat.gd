@@ -236,10 +236,20 @@ func _finish(victory: bool) -> void:
 		result_title.text = "OVERRUN" if not is_tutorial else "FIELD TEST LOST"
 	tree_button.text = "UPGRADES"
 	tree_button.visible = true
-	retry_button.visible = true
+	retry_button.visible = not is_tutorial
 	retry_button.text = "PLAY AGAIN"
-	var flags := ("\nPERFECT CLEAR +%d CRYSTAL" % crystals if flawless else "") + ("\nALL ORCS +%d DIAMOND" % diamonds if all_killed else "")
-	result_body.text = "Kills %d  |  Score %d  |  Gold %d\n+%d SHARDS  +%d CRYSTALS  +%d DIAMONDS%s" % [kills, score, gold, payout, crystals, diamonds, flags]
+	var rewards := []
+	if payout > 0:
+		rewards.append("+%d SHARDS" % payout)
+	if crystals > 0:
+		rewards.append("+%d CRYSTAL%s" % [crystals, "S" if crystals != 1 else ""])
+	if diamonds > 0:
+		rewards.append("+%d DIAMOND%s" % [diamonds, "S" if diamonds != 1 else ""])
+	var reward_text := ", ".join(rewards) if not rewards.is_empty() else "No resource rewards"
+	var run_summary := "Kills %d  |  Score %d" % [kills, score]
+	if gold > 0:
+		run_summary += "  |  Gold %d" % gold
+	result_body.text = "%s\n%s" % [run_summary, reward_text]
 	result_panel.visible = true
 	results_button.visible = true
 	_update_hud()

@@ -14,6 +14,9 @@ func _initialize() -> void:
 	resources["shards"] = 0
 	resources["crystals"] = 0
 	assert(not Progression.can_purchase(tree, resources, "auto"))
+	resources["shards"] = 10000
+	assert(Progression.cost_for("auto", 0).has("shards"))
+	assert(not Progression.cost_for("auto", 0).has("crystals"))
 	var effects := Progression.effects(tree)
 	assert(int(effects["copies"]["gun"]) == 13)
 	assert(is_equal_approx(float(effects["missile_cooldown"]), 1.36))

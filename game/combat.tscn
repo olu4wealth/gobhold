@@ -32,7 +32,7 @@ offset_left = 16.0
 offset_top = 12.0
 offset_right = 220.0
 offset_bottom = 40.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "Wave 1/1"
 
 [node name="HPLabel" type="Label" parent="HUD"]
@@ -40,7 +40,7 @@ offset_left = 16.0
 offset_top = 44.0
 offset_right = 220.0
 offset_bottom = 72.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "Base 20/20"
 
 [node name="ShardLabel" type="Label" parent="HUD"]
@@ -48,7 +48,7 @@ offset_left = 16.0
 offset_top = 76.0
 offset_right = 260.0
 offset_bottom = 104.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
 text = "+0 shards"
 
@@ -57,7 +57,7 @@ offset_left = 16.0
 offset_top = 108.0
 offset_right = 220.0
 offset_bottom = 136.0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(1, 0.78, 0.25, 1)
 text = "GOLD 0"
 
@@ -66,7 +66,7 @@ offset_left = 16.0
 offset_top = 140.0
 offset_right = 220.0
 offset_bottom = 168.0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "SCORE 0"
 
 [node name="KillsLabel" type="Label" parent="HUD"]
@@ -74,7 +74,7 @@ offset_left = 16.0
 offset_top = 172.0
 offset_right = 220.0
 offset_bottom = 200.0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "KILLS 0"
 
 [node name="ResourceLabel" type="Label" parent="HUD"]
@@ -93,7 +93,7 @@ offset_left = -160.0
 offset_top = 12.0
 offset_right = 160.0
 offset_bottom = 40.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "Missile READY"
 horizontal_alignment = 1
 
@@ -104,7 +104,7 @@ offset_left = -116.0
 offset_top = 12.0
 offset_right = -16.0
 offset_bottom = 64.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "1x"
 
 [node name="HelpButton" type="Button" parent="HUD"]
@@ -114,7 +114,7 @@ offset_left = -216.0
 offset_top = 12.0
 offset_right = -124.0
 offset_bottom = 64.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "?"
 
 [node name="HealthBar" type="ProgressBar" parent="HUD"]
@@ -143,7 +143,7 @@ offset_bottom = 150.0
 theme_override_constants/separation = 8
 
 [node name="HelpText" type="Label" parent="HUD/HelpPanel/VBox"]
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "- Tap anywhere to fire the missile
 - MSL button toggles autofire (when unlocked)
 - Towers fire on their own — aim them in build
@@ -151,7 +151,7 @@ text = "- Tap anywhere to fire the missile
 autowrap_mode = 2
 
 [node name="CloseButton" type="Button" parent="HUD/HelpPanel/VBox"]
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "Close"
 
 [node name="ResultsButton" type="Button" parent="HUD"]
@@ -164,33 +164,33 @@ offset_left = -176.0
 offset_top = -152.0
 offset_right = -16.0
 offset_bottom = -96.0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "Results"
 
 [node name="MessageLabel" type="Label" parent="HUD"]
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.0
 anchor_right = 0.5
-anchor_bottom = 1.0
+anchor_bottom = 0.0
 offset_left = -320.0
-offset_top = -64.0
+offset_top = 78.0
 offset_right = 320.0
-offset_bottom = -16.0
-theme_override_font_sizes/font_size = 20
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.85, 0.87, 0.9, 1)
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="MissileButton" type="Button" parent="HUD"]
-anchor_left = 1.0
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -156.0
-offset_top = -88.0
-offset_right = -16.0
+offset_left = -70.0
+offset_top = -76.0
+offset_right = 70.0
 offset_bottom = -16.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "MSL"
 
 [node name="AbilityBox" type="HBoxContainer" parent="HUD"]
@@ -199,9 +199,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -300.0
-offset_top = -76.0
+offset_top = -138.0
 offset_right = 300.0
-offset_bottom = -16.0
+offset_bottom = -82.0
 theme_override_constants/separation = 6
 alignment = 1
 
@@ -212,10 +212,10 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -216.0
-offset_top = -168.0
+offset_top = -214.0
 offset_right = -16.0
-offset_bottom = -96.0
-theme_override_font_sizes/font_size = 24
+offset_bottom = -146.0
+theme_override_font_sizes/font_size = 20
 text = "START WAVE"
 
 [node name="CoachPanel" type="PanelContainer" parent="HUD"]
@@ -233,13 +233,13 @@ offset_bottom = -72.0
 theme_override_constants/separation = 6
 
 [node name="CoachStep" type="Label" parent="HUD/CoachPanel/VBox"]
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 text = "BRIEFING"
 horizontal_alignment = 1
 
 [node name="CoachLabel" type="Label" parent="HUD/CoachPanel/VBox"]
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "Tap anywhere to drop a missile."
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -263,18 +263,18 @@ offset_bottom = 170.0
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="HUD/ResultPanel/VBox"]
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 28
 text = "LEVEL CLEAR"
 horizontal_alignment = 1
 
 [node name="Body" type="Label" parent="HUD/ResultPanel/VBox"]
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 
 [node name="TreeButton" type="Button" parent="HUD/ResultPanel/VBox"]
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "Upgrades"
 
 [node name="RetryButton" type="Button" parent="HUD/ResultPanel/VBox"]
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "PLAY AGAIN"

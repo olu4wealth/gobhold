@@ -39,7 +39,7 @@ func _make_card(i: int) -> PanelContainer:
 	card.add_child(vb)
 	var delete := Button.new()
 	delete.text = "DELETE SAVE"
-	delete.add_theme_font_size_override("font_size", 18)
+	delete.add_theme_font_size_override("font_size", 14)
 	delete.disabled = not occupied
 	delete.pressed.connect(_on_delete.bind(i))
 	vb.add_child(delete)
@@ -47,11 +47,11 @@ func _make_card(i: int) -> PanelContainer:
 	title.text = "SLOT %d" % [i + 1]
 	if Save.active_slot == i:
 		title.text += " · ACTIVE"
-	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_font_size_override("font_size", 26)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(title)
 	var info := Label.new()
-	info.add_theme_font_size_override("font_size", 20)
+	info.add_theme_font_size_override("font_size", 16)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.custom_minimum_size = Vector2(320, 80)
@@ -64,7 +64,7 @@ func _make_card(i: int) -> PanelContainer:
 	var play := Button.new()
 	play.text = "PLAY" if occupied else "EMPTY"
 	play.custom_minimum_size = Vector2(320, 64)
-	play.add_theme_font_size_override("font_size", 26)
+	play.add_theme_font_size_override("font_size", 20)
 	play.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	play.pressed.connect(_on_play.bind(i))
 	vb.add_child(play)

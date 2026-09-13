@@ -24,9 +24,11 @@ func refresh() -> void:
 	var unlocked: Array = (data["progress"] as Dictionary).get("unlocked", [])
 	var tut_done := bool(meta.get("tut", false))
 	for lv in Defs.LEVELS:
+		if bool(lv.get("tutorial", false)):
+			continue
 		var lid := String(lv["id"])
-		var open := lid == "T" or (tut_done and (lid == "1.1" or unlocked.has(lid)))
-		_rows.add_child(_make_card(lv, open, not tut_done and lid != "T"))
+		var open := tut_done and (lid == "1.1" or unlocked.has(lid))
+		_rows.add_child(_make_card(lv, open, not tut_done))
 
 
 func _make_card(lv: Dictionary, open: bool, gated: bool) -> PanelContainer:
@@ -45,27 +47,27 @@ func _make_card(lv: Dictionary, open: bool, gated: bool) -> PanelContainer:
 	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hb.add_child(vb)
 	var title := Label.new()
-	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_font_size_override("font_size", 20)
 	if not open:
 		title.text = "%s %s — %s" % [String(lv["id"]), String(lv["name"]), "finish Field Test" if gated else "clear prior level"]
 	else:
 		title.text = "%s %s" % [String(lv["id"]), String(lv["name"])]
 	vb.add_child(title)
 	var sub := Label.new()
-	sub.add_theme_font_size_override("font_size", 18)
+	sub.add_theme_font_size_override("font_size", 15)
 	sub.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8, 1))
 	sub.text = "%d orcs · %s" % [int(lv.get("orcs", 0)), String(lv.get("diff", ""))]
 	vb.add_child(sub)
 	var info_btn := Button.new()
 	info_btn.text = "i"
 	info_btn.custom_minimum_size = Vector2(56, 56)
-	info_btn.add_theme_font_size_override("font_size", 22)
+	info_btn.add_theme_font_size_override("font_size", 18)
 	info_btn.pressed.connect(_on_info.bind(lv))
 	hb.add_child(info_btn)
 	var play := Button.new()
 	play.text = "PLAY"
 	play.custom_minimum_size = Vector2(140, 80)
-	play.add_theme_font_size_override("font_size", 24)
+	play.add_theme_font_size_override("font_size", 20)
 	play.disabled = not open
 	play.pressed.connect(_on_play.bind(String(lv["id"])))
 	hb.add_child(play)

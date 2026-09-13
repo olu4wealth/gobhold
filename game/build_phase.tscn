@@ -24,21 +24,12 @@ offset_right = 560.0
 offset_bottom = -16.0
 theme_override_constants/separation = 12
 
-[node name="GoldLabel" type="Label" parent="HUD"]
-offset_left = 16.0
-offset_top = 12.0
-offset_right = 210.0
-offset_bottom = 44.0
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(1, 0.78, 0.25, 1)
-text = "GOLD 400"
-
 [node name="CountLabel" type="Label" parent="HUD"]
 offset_left = 220.0
 offset_top = 14.0
 offset_right = 420.0
 offset_bottom = 44.0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "TOWERS 0/3"
 
 [node name="ModeButton" type="Button" parent="HUD"]
@@ -50,7 +41,7 @@ offset_left = -90.0
 offset_top = -88.0
 offset_right = 90.0
 offset_bottom = -16.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "MODE: AIM"
 
 [node name="StartButton" type="Button" parent="HUD"]
@@ -62,7 +53,7 @@ offset_left = -216.0
 offset_top = -88.0
 offset_right = -16.0
 offset_bottom = -16.0
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 text = "BATTLE"
 
 [node name="BackButton" type="Button" parent="HUD"]
@@ -72,7 +63,7 @@ offset_left = -136.0
 offset_top = 12.0
 offset_right = -16.0
 offset_bottom = 64.0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "LEVELS"
 
 [node name="HelpButton" type="Button" parent="HUD"]
@@ -82,7 +73,7 @@ offset_left = -236.0
 offset_top = 12.0
 offset_right = -144.0
 offset_bottom = 64.0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "?"
 
 [node name="HelpPanel" type="PanelContainer" parent="HUD"]
@@ -100,7 +91,7 @@ offset_bottom = 150.0
 theme_override_constants/separation = 8
 
 [node name="HelpText" type="Label" parent="HUD/HelpPanel/VBox"]
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "- Tap tray icon, tap ground to place
 - Drag from a tower to aim (far = narrow arc)
 - MODE button toggles move / aim
@@ -109,7 +100,7 @@ text = "- Tap tray icon, tap ground to place
 autowrap_mode = 2
 
 [node name="CloseButton" type="Button" parent="HUD/HelpPanel/VBox"]
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "Close"
 
 [node name="MessageLabel" type="Label" parent="HUD"]
@@ -121,7 +112,7 @@ offset_left = -320.0
 offset_top = -152.0
 offset_right = 320.0
 offset_bottom = -96.0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.85, 0.87, 0.9, 1)
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -133,13 +124,13 @@ visible = false
 theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="HUD/InfoPanel/VBox"]
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 
 [node name="PriorityButton" type="Button" parent="HUD/InfoPanel/VBox"]
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 
 [node name="ArcLabel" type="Label" parent="HUD/InfoPanel/VBox"]
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 
 [node name="ArcSlider" type="HSlider" parent="HUD/InfoPanel/VBox"]
 custom_minimum_size = Vector2(220, 44)
